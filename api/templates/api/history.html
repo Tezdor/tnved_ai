@@ -1,0 +1,23 @@
+{% extends 'api/base.html' %}
+{% load static %}
+
+{% block title %}История запросов{% endblock %}
+
+{% block content %}
+
+<main class="container">
+
+    <h2> История запросов</h2>
+
+    <div id="historyContainer">
+        <p>Загрузка...</p>
+    </div>
+
+</main>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{% static 'api/js/history.js' %}"></script>
+{% endblock %}

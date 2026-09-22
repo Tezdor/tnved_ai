@@ -1,0 +1,132 @@
+<div class="container">
+
+    <article class="form-container">
+
+        <h1>
+            Определение кода ТН ВЭД
+        </h1>
+
+
+        <!-- 1. Фото товара -->
+        <label for="productImage">
+            Фото товара
+        </label>
+
+        <input
+            type="file"
+            id="productImage"
+            accept="image/*"
+            multiple
+        >
+
+
+        <!-- 2. Ссылка -->
+        <label for="imageUrl">
+            Ссылка на изображение
+        </label>
+
+        <input
+            type="text"
+            id="imageUrl"
+            placeholder="https://example.com/image.jpg"
+        >
+
+
+        <!-- 3. Файлы -->
+        <label for="productFiles">
+            Файлы с компьютера
+        </label>
+
+        <input
+            type="file"
+            id="productFiles"
+            accept="image/*"
+            multiple
+        >
+
+
+        <!-- 4. Описание -->
+        <label for="description">
+            Описание товара
+        </label>
+
+        <textarea
+            id="description"
+            rows="3"
+            placeholder="Например: мужская куртка из синтетического материала..."
+        ></textarea>
+
+
+        <!-- Превью всех изображений -->
+
+        <div
+            id="previewContainer"
+            style="display:none;"
+        >
+            <h4>
+                Предпросмотр изображений
+            </h4>
+
+            <div class="image-carousel">
+
+                <button
+                    type="button"
+                    class="carousel-button carousel-prev"
+                    id="prevImageBtn"
+                    aria-label="Предыдущее изображение"
+                >
+                    ←
+                </button>
+
+                <div
+                    id="previewImages"
+                    class="carousel-image-container"
+                ></div>
+
+                <button
+                    type="button"
+                    class="carousel-button carousel-next"
+                    id="nextImageBtn"
+                    aria-label="Следующее изображение"
+                >
+                    →
+                </button>
+
+            </div>
+
+            <div
+                id="imageCounter"
+                class="image-counter"
+            >
+                0 / 0
+            </div>
+
+        </div>
+
+
+        <div
+            id="loader"
+            style="display:none;"
+        >
+
+            <progress></progress>
+
+            <p>
+                Анализируем товар...
+            </p>
+
+        </div>
+
+
+        <button
+            id="generateBtn"
+            type="button"
+        >
+            Определить код
+        </button>
+
+
+    </article>
+
+
+</div>

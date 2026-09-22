@@ -1,0 +1,1023 @@
+/* ================================
+   ОСНОВНЫЕ ЦВЕТА ТЕМЫ
+================================ */
+
+:root {
+
+    --page-background: #ffffff;
+    --page-text: #1f2937;
+
+    --card-background: #ffffff;
+    --card-border: #e5e7eb;
+
+    --secondary-background: #f5f5f5;
+
+    --header-background: #ffffff;
+
+    --button-background: #1095c1;
+    --button-text: #ffffff;
+
+    --input-background: #ffffff;
+    --input-border: #c6c6c6;
+    --input-text: #1f2937;
+
+    --dialog-background: #ffffff;
+
+    --table-background: #ffffff;
+    --table-border: #dddddd;
+
+    --muted-text: #6b7280;
+
+    --shadow-color: rgba(0,0,0,0.08);
+
+}
+
+
+/* ================================
+   ТЁМНАЯ ТЕМА
+================================ */
+
+html[data-theme="dark"] {
+
+    --page-background: #111827;
+    --page-text: #f3f4f6;
+
+    --card-background: #1f2937;
+    --card-border: #374151;
+
+    --secondary-background: #273244;
+
+    --header-background: #111827;
+
+    --button-background: #1095c1;
+    --button-text: #ffffff;
+
+    --input-background: #1f2937;
+    --input-border: #4b5563;
+    --input-text: #f3f4f6;
+
+    --dialog-background: #1f2937;
+
+    --table-background: #1f2937;
+    --table-border: #4b5563;
+
+    --muted-text: #9ca3af;
+
+    --shadow-color: rgba(0,0,0,0.35);
+
+}
+
+
+/* ================================
+   BODY
+================================ */
+
+html,
+body {
+
+    background-color: var(--page-background);
+    color: var(--page-text);
+
+}
+
+
+body {
+
+    margin:0;
+    padding:30px;
+
+}
+
+
+/* ================================
+   ОБЩИЙ КОНТЕЙНЕР
+================================ */
+
+.container {
+
+    width:100%;
+    max-width:1000px;
+
+    margin:0 auto;
+
+}
+
+
+/* ================================
+   ШАПКА
+================================ */
+
+.site-header {
+
+    width:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:20px;
+
+}
+
+
+/* ================================
+   ЛОГОТИП ALTA
+================================ */
+
+.alta-logo-link {
+
+    display:flex;
+
+    align-items:center;
+
+    text-decoration:none;
+
+    border:none;
+
+    background:transparent;
+
+    padding:0;
+
+    margin:0;
+
+}
+
+
+.alta-logo {
+
+    display:block;
+
+    width:auto;
+
+    height:28px;
+
+    max-width:100px;
+
+    object-fit:contain;
+
+    border:none;
+
+    box-shadow:none;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+
+}
+
+
+.alta-logo-link:hover .alta-logo {
+
+    transform:scale(1.05);
+
+    opacity:0.9;
+
+}
+
+
+/* ================================
+   ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
+================================ */
+
+.theme-switcher-container {
+
+    display:flex;
+
+    justify-content:flex-end;
+
+}
+
+
+.theme-toggle {
+
+    width:48px;
+    height:48px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    font-size:22px;
+
+    background:var(--card-background);
+
+    color:var(--page-text);
+
+    border:1px solid var(--card-border);
+
+    cursor:pointer;
+
+    box-shadow:0 2px 8px var(--shadow-color);
+
+}
+
+
+.theme-toggle:hover {
+
+    transform:scale(1.05);
+
+}
+
+
+/* ================================
+   КАРТОЧКИ
+================================ */
+
+article,
+.form-container,
+.request-block,
+.result-card,
+.final-card {
+
+    background:var(--card-background);
+
+    border:1px solid var(--card-border);
+
+    border-radius:18px;
+
+    box-shadow:0 2px 8px var(--shadow-color);
+
+}
+
+
+/* ================================
+   ФОРМА
+================================ */
+
+.form-container {
+
+    width:100%;
+
+    padding:32px;
+
+    box-sizing:border-box;
+
+}
+
+
+/* ================================
+   ПОЛЕ ОПИСАНИЯ
+================================ */
+
+#description {
+
+    width:100%;
+
+    min-height:70px;
+
+    max-height:120px;
+
+    resize:vertical;
+
+    overflow:auto;
+
+}
+
+
+/* ================================
+   INPUT / TEXTAREA
+================================ */
+
+input,
+textarea,
+select {
+
+    width:100%;
+
+    max-width:100%;
+
+    box-sizing:border-box;
+
+    background:var(--input-background);
+
+    color:var(--input-text);
+
+    border-color:var(--input-border);
+
+}
+
+
+input::placeholder,
+textarea::placeholder {
+
+    color:var(--muted-text);
+
+}
+
+
+/* ================================
+   ЗАГРУЗКА ФАЙЛОВ
+================================ */
+
+input[type="file"] {
+
+    padding:10px;
+
+}
+
+
+#imageFilesPreview {
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(140px,1fr));
+
+    gap:15px;
+
+    margin-top:20px;
+
+}
+
+
+.image-preview-item {
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+    border:1px solid var(--card-border);
+
+}
+
+
+.image-preview-item img {
+
+    width:100%;
+
+    height:140px;
+
+    object-fit:contain;
+
+}
+
+
+/* ================================
+   ПРЕДПРОСМОТР
+================================ */
+
+#previewContainer {
+
+    margin-top:20px;
+
+    width:100%;
+
+}
+
+
+.preview-image {
+
+    display:block;
+
+    width:100%;
+
+    max-width:100%;
+
+    max-height:300px;
+
+    object-fit:contain;
+
+    border-radius:12px;
+
+}
+
+
+/* ================================
+   BUTTON
+================================ */
+
+button {
+
+    max-width:100%;
+
+}
+
+
+/* ================================
+   LOADER
+================================ */
+
+#loader {
+
+    margin-top:20px;
+
+    text-align:center;
+
+}
+
+
+/* ================================
+   DIALOG
+================================ */
+
+dialog {
+
+    width:900px;
+
+    max-width:95vw;
+
+    max-height:90vh;
+
+    border:none;
+
+    border-radius:16px;
+
+    background:var(--dialog-background);
+
+    color:var(--page-text);
+
+    overflow-y:auto;
+
+    box-shadow:
+    0 10px 40px var(--shadow-color);
+
+}
+
+
+dialog::backdrop {
+
+    background:rgba(0,0,0,0.5);
+
+}
+
+
+/* ================================
+   QUESTIONS
+================================ */
+
+#questionsContainer {
+
+    margin-top:20px;
+
+}
+
+
+/* ================================
+   RESULTS
+================================ */
+
+.results-container {
+
+    width:100%;
+
+    margin-top:40px;
+
+    margin-bottom:40px;
+
+}
+
+
+.results-grid {
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(450px,1fr));
+
+    gap:20px;
+
+}
+
+
+.result-card,
+.final-card {
+
+    padding:24px;
+
+    overflow-wrap:anywhere;
+
+}
+
+
+/* ================================
+   TABLE РЕЗУЛЬТАТОВ МОДЕЛЕЙ
+================================ */
+
+.models-table-wrapper {
+
+    width:100%;
+
+    margin-bottom:20px;
+
+    background:var(--card-background);
+
+    border:1px solid var(--card-border);
+
+    border-radius:18px;
+
+    box-shadow:0 2px 8px var(--shadow-color);
+
+    overflow:hidden;
+
+}
+
+
+.models-table-title {
+
+    margin:0;
+
+    padding:20px 24px;
+
+    font-size:20px;
+
+    color:var(--page-text);
+
+}
+
+
+.models-table-container {
+
+    width:100%;
+
+    overflow-x:auto;
+
+}
+
+
+.models-table {
+
+    width:100%;
+
+    min-width:700px;
+
+    border-collapse:collapse;
+
+    background:var(--table-background);
+
+    color:var(--page-text);
+
+}
+
+
+/* ================================
+   ЗАГОЛОВОК ТАБЛИЦЫ
+================================ */
+
+.models-table thead {
+
+    background:var(--secondary-background);
+
+}
+
+
+.models-table th {
+
+    padding:14px 16px;
+
+    text-align:left;
+
+    font-weight:600;
+
+    border-bottom:1px solid var(--table-border);
+
+    white-space:nowrap;
+
+}
+
+
+.models-table th:first-child {
+
+    width:45px;
+
+}
+
+
+/* ================================
+   ОСНОВНАЯ СТРОКА МОДЕЛИ
+================================ */
+
+.models-table .model-row {
+
+    cursor:pointer;
+
+    transition:
+        background-color 0.15s ease;
+
+    user-select:none;
+
+}
+
+
+.models-table .model-row:hover {
+
+    background:var(--secondary-background);
+
+}
+
+
+.models-table .model-row td {
+
+    padding:16px;
+
+    border-bottom:1px solid var(--table-border);
+
+    overflow-wrap:anywhere;
+
+}
+
+
+/* ================================
+   СТРЕЛКА
+================================ */
+
+.models-table .model-expand-icon {
+
+    width:45px;
+
+    text-align:center;
+
+    font-size:14px;
+
+    color:var(--muted-text);
+
+    transition:transform 0.15s ease;
+
+}
+
+
+.models-table .model-row-open {
+
+    background:var(--secondary-background);
+
+}
+
+
+.models-table .model-row-open
+.model-expand-icon {
+
+    color:var(--page-text);
+
+}
+
+
+/* ================================
+   РАСКРЫТЫЕ ДАННЫЕ
+================================ */
+
+.models-table .model-details-row {
+
+    background:var(--card-background);
+
+}
+
+
+.models-table .model-details-row td {
+
+    padding:0;
+
+    border-bottom:1px solid var(--table-border);
+
+}
+
+
+.models-table .model-details {
+
+    padding:20px 24px;
+
+}
+
+
+.models-table .model-details p {
+
+    margin:0 0 10px 0;
+
+    line-height:1.5;
+
+}
+
+
+.models-table .model-details-text {
+
+    margin:8px 0 18px 0;
+
+    padding:14px;
+
+    border-radius:10px;
+
+    background:var(--secondary-background);
+
+    color:var(--page-text);
+
+    line-height:1.6;
+
+    white-space:normal;
+
+    overflow-wrap:anywhere;
+
+}
+
+
+/* ================================
+   ОБЩИЕ СТИЛИ TABLE
+================================ */
+
+table {
+
+    color:var(--page-text);
+
+}
+
+
+th,
+td {
+
+    border-color:var(--table-border);
+
+}
+
+
+/* ================================
+   TEXT
+================================ */
+
+small,
+.muted {
+    color:var(--muted-text);
+}
+
+
+/* ================================
+   IMAGE
+================================ */
+
+img {
+    max-width:100%;
+}
+
+
+/* ================================
+   TABLET
+================================ */
+
+@media(max-width:1024px){
+
+    body {
+        padding:20px;
+    }
+
+    .container {
+        max-width:100%;
+    }
+
+    .form-container {
+        padding:24px;
+    }
+
+    .results-grid {
+
+        grid-template-columns:
+        repeat(auto-fit,minmax(330px,1fr));
+
+    }
+
+    .result-card,
+    .final-card {
+        padding:20px;
+    }
+
+    .alta-logo {
+        height:26px;
+        max-width:95px;
+    }
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+
+@media(max-width:767px){
+
+    body {
+        padding:12px;
+    }
+
+    .container {
+        width:100%;
+    }
+
+    .form-container {
+        padding:16px;
+    }
+
+    input,
+    textarea,
+    select {
+        width:100%;
+    }
+
+    button {
+        width:100%;
+    }
+
+    .results-grid {
+
+        grid-template-columns:1fr;
+
+        gap:15px;
+
+    }
+
+    .result-card,
+    .final-card {
+        padding:16px;
+    }
+
+    .preview-image {
+        max-height:250px;
+    }
+
+    dialog {
+
+        width:
+        calc(100vw - 24px);
+
+        margin:12px;
+
+    }
+
+    .models-table-wrapper {
+        border-radius:14px;
+    }
+
+    .models-table-title {
+
+        padding:16px;
+
+        font-size:18px;
+
+    }
+
+    .models-table th,
+    .models-table .model-row td {
+        padding:12px;
+    }
+
+    .models-table .model-details {
+        padding:16px;
+    }
+
+    .models-table .model-details-text {
+        padding:12px;
+    }
+
+    .site-header {
+        margin-bottom:16px;
+    }
+
+    .alta-logo {
+        height:24px;
+        max-width:90px;
+    }
+
+}
+
+
+/* ================================
+   МАЛЕНЬКИЕ ТЕЛЕФОНЫ
+================================ */
+
+@media(max-width:400px){
+
+    body {
+        padding:8px;
+    }
+
+    .form-container {
+        padding:12px;
+    }
+
+    .result-card,
+    .final-card {
+        padding:12px;
+    }
+
+    .preview-image {
+        max-height:200px;
+    }
+
+    .image-carousel {
+        gap:6px;
+    }
+
+    .carousel-image-container {
+        height:260px;
+    }
+
+    .carousel-button {
+        width:38px;
+        height:38px;
+        min-width:38px;
+        font-size:20px;
+    }
+
+    .alta-logo {
+        height:22px;
+        max-width:80px;
+    }
+
+}
+
+
+/* ================================
+   КАРУСЕЛЬ ИЗОБРАЖЕНИЙ
+================================ */
+
+.image-carousel {
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:12px;
+
+    width:100%;
+
+    margin-top:12px;
+
+}
+
+
+.carousel-image-container {
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:100%;
+
+    max-width:600px;
+
+    height:350px;
+
+    overflow:hidden;
+
+    border-radius:12px;
+
+    background:var(--secondary-background);
+
+}
+
+
+.carousel-image-container .preview-image {
+
+    display:block;
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:contain;
+
+    border-radius:12px;
+
+}
+
+
+.carousel-button {
+
+    width:44px;
+
+    height:44px;
+
+    min-width:44px;
+
+    padding:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    font-size:24px;
+
+    line-height:1;
+
+    cursor:pointer;
+
+}
+
+
+.image-counter {
+
+    text-align:center;
+
+    margin-top:8px;
+
+    font-size:14px;
+
+    opacity:0.7;
+
+}

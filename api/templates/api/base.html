@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        {% block title %}
+            TNVED AI
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'api/css/style.css' %}"
+    >
+</head>
+
+<body>
+
+    <header class="site-header">
+
+        <!-- ЛОГОТИП ALTA -->
+        <a
+            href="https://www.alta.ru/"
+            class="alta-logo-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Перейти на сайт Альта"
+        >
+            <img
+                src="{% static 'api/images/alta-logo.png' %}"
+                alt="Альта"
+                class="alta-logo"
+            >
+        </a>
+
+        <!-- ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ -->
+        <div class="theme-switcher-container">
+            <button
+                type="button"
+                id="themeToggle"
+                class="theme-toggle"
+                aria-label="Переключить тему"
+            >
+                🌙
+            </button>
+        </div>
+
+    </header>
+
+    {% block content %}
+    {% endblock %}
+
+    <script
+        type="module"
+        src="/static/api/js/main.js"
+    ></script>
+
+    <script>
+        (function () {
+
+            const savedTheme = localStorage.getItem("tnved-theme");
+
+            if (savedTheme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            } else {
+                document.documentElement.setAttribute("data-theme", "light");
+            }
+
+            function updateThemeButton() {
+
+                const button =
+                    document.getElementById("themeToggle");
+
+                if (!button) {
+                    return;
+                }
+
+                const currentTheme =
+                    document.documentElement.getAttribute("data-theme");
+
+                button.textContent =
+                    currentTheme === "dark" ? "☀️" : "🌙";
+            }
+
+            document.addEventListener(
+                "DOMContentLoaded",
+                function () {
+
+                    updateThemeButton();
+
+                    const button =
+                        document.getElementById("themeToggle");
+
+                    if (!button) {
+                        return;
+                    }
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            const currentTheme =
+                                document.documentElement.getAttribute(
+                                    "data-theme"
+                                );
+
+                            const newTheme =
+                                currentTheme === "dark"
+                                    ? "light"
+                                    : "dark";
+
+                            document.documentElement.setAttribute(
+                                "data-theme",
+                                newTheme
+                            );
+
+                            localStorage.setItem(
+                                "tnved-theme",
+                                newTheme
+                            );
+
+                            updateThemeButton();
+                        }
+                    );
+                }
+            );
+
+        })();
+    </script>
+
+    {% block scripts %}
+    {% endblock %}
+
+</body>
+</html>
