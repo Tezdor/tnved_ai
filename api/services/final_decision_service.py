@@ -7,9 +7,9 @@ from .openai_service import clean_json
 
 
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=os.getenv("PROXYAPI_API_KEY"),
+    base_url="https://api.proxyapi.ru/v1"
 )
-
 
 # ============================================================
 # НОРМАЛИЗАЦИЯ КОДА
