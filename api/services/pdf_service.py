@@ -7,19 +7,50 @@ from xml.sax.saxutils import escape
 
 from io import BytesIO
 
+import os
+from pathlib import Path
+
+def register_pdf_fonts():
+    if os.name == "nt":
+        fonts_dir = Path(
+            os.environ.get("WINDIR", "C:/Windows")
+        ) / "Fonts"
+
+        regular_path = fonts_dir / "arial.ttf"
+        bold_path = fonts_dir / "arialbd.ttf"
+    else:
+        fonts_dir = Path("/usr/share/fonts/truetype/dejavu")
+
+        regular_path = fonts_dir / "DejaVuSans.ttf"
+        bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
+
+    for font_path in (regular_path, bold_path):
+        if not font_path.is_file():
+            raise FileNotFoundError(
+                f"Не найден шрифт для PDF: {font_path}"
+            )
+
+    pdfmetrics.registerFont(
+        TTFont("PDFRegular", str(regular_path))
+    )
+    pdfmetrics.registerFont(
+        TTFont("PDFBold", str(bold_path))
+    )
+
+    pdfmetrics.registerFontFamily(
+        "PDFRegular",
+        normal="PDFRegular",
+        bold="PDFBold",
+        italic="PDFRegular",
+        boldItalic="PDFBold"
+    )
 
 
 def generate_pdf(results):
 
     pdf_buffer = BytesIO()
 
-    # Регистрируем шрифт с поддержкой русского
-
-    font_path = "C:/Windows/Fonts/arial.ttf"
-
-    pdfmetrics.registerFont(
-        TTFont('Arial', font_path)
-    )
+    register_pdf_fonts()
 
     doc = SimpleDocTemplate(pdf_buffer)
 
@@ -27,7 +58,7 @@ def generate_pdf(results):
 
     style = styles['BodyText']
 
-    style.fontName = 'Arial'
+    style.fontName = "PDFRegular"
 
     elements = []
 
