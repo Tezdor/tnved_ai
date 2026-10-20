@@ -41,16 +41,46 @@
         </a>
 
         <!-- ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ -->
-        <div class="theme-switcher-container">
-            <button
-                type="button"
-                id="themeToggle"
-                class="theme-toggle"
-                aria-label="Переключить тему"
-            >
-                🌙
-            </button>
-        </div>
+        <nav class="auth-nav" aria-label="Аккаунт">
+
+            {% if user.is_authenticated %}
+
+                <a href="{% url 'account' %}" class="auth-btn auth-btn-outline">
+                    Личный кабинет · {{ user.username }}
+                </a>
+
+                <form method="post" action="{% url 'logout' %}" class="auth-logout-form">
+                    {% csrf_token %}
+
+                    <button type="submit" class="auth-btn auth-btn-outline">
+                        Выйти
+                    </button>
+                </form>
+
+            {% else %}
+
+                <a href="{% url 'login' %}" class="auth-btn auth-btn-outline">
+                    Войти
+                </a>
+
+                <a href="{% url 'register' %}" class="auth-btn auth-btn-primary">
+                    Регистрация
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+            <div class="theme-switcher-container">
+                <button
+                    type="button"
+                    id="themeToggle"
+                    class="theme-toggle"
+                    aria-label="Переключить тему"
+                >
+                    🌙
+                </button>
+            </div>
 
     </header>
 

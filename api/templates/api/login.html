@@ -1,0 +1,32 @@
+{% extends "api/base.html" %}
+
+{% block title %}
+    Вход — TNVED AI
+{% endblock %}
+
+{% block content %}
+
+<main class="container">
+
+    <h2>Вход в аккаунт</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+            Войти
+        </button>
+    </form>
+
+    <p>
+        Нет аккаунта?
+        <a href="{% url 'register' %}">
+            Зарегистрироваться
+        </a>
+    </p>
+
+</main>
+
+{% endblock %}

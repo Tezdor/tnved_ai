@@ -1,3 +1,13 @@
+function getCsrfToken() {
+    const cookie = document.cookie
+        .split("; ")
+        .find(item => item.startsWith("csrftoken="));
+
+    return cookie
+        ? decodeURIComponent(cookie.substring("csrftoken=".length))
+        : "";
+}
+
 export function initMarketplace() {
 
     const input =
@@ -88,8 +98,8 @@ export async function fetchProductInfo() {
                     method: "POST",
 
                     headers: {
-                        "Content-Type":
-                            "application/json"
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken()
                     },
 
                     body:

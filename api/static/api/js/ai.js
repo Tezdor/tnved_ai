@@ -1,10 +1,17 @@
-import {
-setLatestResults
-} from "./state.js";
+import {setLatestResults, getProductRequestId} from "./state.js";
+import {displayResults} from "./results.js";
+import { showGuestLimitNotice } from "./guest-limit.js";
 
-import {
-displayResults
-} from "./results.js";
+
+function getCsrfToken() {
+    const cookie = document.cookie
+        .split("; ")
+        .find(item => item.startsWith("csrftoken="));
+
+    return cookie
+        ? decodeURIComponent(cookie.substring("csrftoken=".length))
+        : "";
+}
 
 export async function sendToAI(
     answers,
@@ -50,11 +57,12 @@ try {
                 method: "POST",
 
                 headers: {
-                    "Content-Type":
-                        "application/json"
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken()
                 },
 
                 body: JSON.stringify({
+                    request_id: getProductRequestId(requestId),
 
                     description:
                         description,
@@ -84,12 +92,22 @@ try {
     }
 
 
+    if (data.code === "GUEST_LIMIT_REACHED") {
+
+    const modal = document.getElementById("questionsModal");
+
+    if (modal && modal.open) {
+        modal.close();
+    }
+
+    showGuestLimitNotice();
+
+    return;
+}
+
     if (data.error) {
 
-        alert(
-            "Ошибка: " +
-            data.error
-        );
+        alert("Ошибка: " + data.error);
 
         return;
     }

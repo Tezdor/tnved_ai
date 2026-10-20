@@ -1,3 +1,5 @@
+import { downloadPDF } from "./pdf.js";
+
 document.addEventListener('DOMContentLoaded', loadHistory);
 
 async function loadHistory() {
@@ -10,13 +12,13 @@ async function loadHistory() {
 
         container.innerHTML = '';
 
-        data.forEach(item => {
+        data.forEach((item, index) => {
 
             const card = document.createElement('article');
 
             card.innerHTML = `
                 <header>
-                    <strong> Запрос #${item.id}</strong>
+                    <strong>Запрос №${data.length - index}</strong>
                     <small>${new Date(item.created_at).toLocaleString()}</small>
                 </header>
 
@@ -50,6 +52,30 @@ async function loadHistory() {
                 }
             `;
 
+            const pdfButton = document.createElement("button");
+
+            pdfButton.type = "button";
+            pdfButton.className = "secondary outline download-pdf-btn";
+            pdfButton.textContent = "Скачать PDF";
+
+            pdfButton.addEventListener("click", () => {
+                const results = {
+                    final: item.final
+                };
+
+                for (const modelResult of item.results) {
+                    results[modelResult.model] = {
+                        tnved_code: modelResult.tnved_code,
+                        title: modelResult.title,
+                        confidence: modelResult.confidence,
+                        reasoning: modelResult.reasoning
+                    };
+                }
+
+                downloadPDF(results, pdfButton);
+            });
+
+            card.appendChild(pdfButton);
             container.appendChild(card);
         });
 

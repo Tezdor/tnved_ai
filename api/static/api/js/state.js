@@ -326,3 +326,18 @@ export function removeRequestState(
         requestId
     );
 }
+
+export function setProductRequestId(requestId, productRequestId) {
+    const state = getRequestState(requestId);
+
+    if (state) {
+        state.productRequestId = productRequestId;
+    }
+}
+
+
+export function getProductRequestId(requestId) {
+    const state = getRequestState(requestId);
+
+    return state ? state.productRequestId : null;
+}

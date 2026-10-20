@@ -4,11 +4,22 @@ import {
     setGeneratedQuestions,
     setImageFromUrl,
     getImageFromUrl,
-    setDescription
+    setDescription,
+    setProductRequestId
 } from "./state.js";
 
 import { sendToAI } from "./ai.js";
+import { showGuestLimitNotice } from "./guest-limit.js";
 
+function getCsrfToken() {
+    const cookie = document.cookie
+        .split("; ")
+        .find(item => item.startsWith("csrftoken="));
+
+    return cookie
+        ? decodeURIComponent(cookie.substring("csrftoken=".length))
+        : "";
+}
 
 let activeRequestId = null;
 let displayedRequestId = null;
@@ -375,8 +386,8 @@ async function loadMarketplaceProduct(
                     method: "POST",
 
                     headers: {
-                        "Content-Type":
-                            "application/json"
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken()
                     },
 
                     body: JSON.stringify({
@@ -1047,6 +1058,9 @@ export async function generateQuestions() {
                 "/api/generate-questions/",
                 {
                     method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCsrfToken()
+                    },
                     body: formData
                 }
             );
@@ -1061,6 +1075,21 @@ export async function generateQuestions() {
             data
         );
 
+        if (
+            response.status === 403 &&
+            data.code === "GUEST_LIMIT_REACHED"
+        ) {
+            showGuestLimitNotice();
+            return;
+        }
+
+        if (
+            response.status === 403 &&
+            data.code === "GUEST_LIMIT_REACHED"
+        ) {
+            showGuestLimitNotice();
+            return;
+        }
 
         if (!response.ok) {
 
@@ -1090,6 +1119,7 @@ export async function generateQuestions() {
 
         }
 
+        setProductRequestId(requestId, data.request_id);
         const visionData =
             data && data.detected_product
                 ? data

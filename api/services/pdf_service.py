@@ -1,27 +1,17 @@
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer
-)
-
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from django.conf import settings
+from xml.sax.saxutils import escape
 
-import os
+from io import BytesIO
+
 
 
 def generate_pdf(results):
 
-    pdf_path = os.path.join(
-        settings.BASE_DIR,
-        'api',
-        'pdfs',
-        'tnved_result.pdf'
-    )
+    pdf_buffer = BytesIO()
 
     # Регистрируем шрифт с поддержкой русского
 
@@ -31,7 +21,7 @@ def generate_pdf(results):
         TTFont('Arial', font_path)
     )
 
-    doc = SimpleDocTemplate(pdf_path)
+    doc = SimpleDocTemplate(pdf_buffer)
 
     styles = getSampleStyleSheet()
 
@@ -138,6 +128,52 @@ def generate_pdf(results):
     elements.append(
         Paragraph(yandex_text, style)
     )
+    final = results.get("final") or {}
+
+    def pdf_text(value):
+        if value is None or value == "":
+            return "-"
+        return escape(str(value)).replace("\n", "<br/>")
+
+    supported_by = ", ".join(
+        str(name) for name in (final.get("supported_by") or [])
+    )
+
+    elements.append(Spacer(1, 30))
+
+    elements.append(
+        Paragraph(
+            "<font size=16><b>Итоговая рекомендация</b></font>",
+            style
+        )
+    )
+
+    elements.append(Spacer(1, 15))
+
+    final_fields = [
+        ("Код ТН ВЭД", final.get("recommended_code")),
+        ("Уверенность, %", final.get("confidence")),
+        ("НДС", final.get("vat")),
+        ("Импортная пошлина", final.get("duty")),
+        ("Поддерживается моделями", supported_by),
+        (
+            "Обоснование НДС и пошлины",
+            final.get("customs_reasoning")
+        ),
+        ("Обоснование решения", final.get("reasoning")),
+    ]
+
+    for label, value in final_fields:
+        elements.append(
+            Paragraph(
+                f"<b>{label}:</b><br/>{pdf_text(value)}",
+                style
+            )
+        )
+        elements.append(Spacer(1, 10))
+
     doc.build(elements)
 
-    return pdf_path
+    pdf_buffer.seek(0)
+
+    return pdf_buffer

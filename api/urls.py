@@ -15,9 +15,20 @@ from .views import (
     wb_image_proxy,
 )
 
+from .views_auth import (
+    register_view,
+    login_view,
+    logout_view,
+)
+
+from .views_account import account_page
+
 urlpatterns = [
 
-    path('', index),
+    path('', index, name='index'),
+    path('register/', register_view, name='register'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
     path('generate-questions/', generate_questions_view),
     path('analyze-product/', analyze_product_view),
     path('download-pdf/', download_pdf_view),
@@ -27,6 +38,7 @@ urlpatterns = [
     path( "process-image/", process_image_view),
     path("parse_product/", parse_product_view),
     path('wb-image-proxy/', wb_image_proxy, name='wb_image_proxy'),
+    path('account/', account_page, name='account'),
 ]
 
 urlpatterns += static(

@@ -1,35 +1,7 @@
-import {
-    initImageUpload,
-    initPasteImage
-}
-from "./images.js";
-
-
-import {
-    initMarketplace
-}
-from "./marketplaces.js";
-
-
-import {
-    generateQuestions
-}
-from "./questions.js";
-
-
-import {
-    submitAnswers
-}
-from "./answers.js";
-
-
-import {
-    downloadPDF
-}
-from "./pdf.js";
-
-
-
+import {initImageUpload, initPasteImage} from "./images.js";
+import {initMarketplace} from "./marketplaces.js";
+import {generateQuestions} from "./questions.js";
+import {submitAnswers} from "./answers.js";
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -65,19 +37,6 @@ document.addEventListener(
             "click",
             submitAnswers
         );
-
-
-
-        document
-        .getElementById(
-            "downloadPdfBtn"
-        )
-        ?.addEventListener(
-            "click",
-            downloadPDF
-        );
-
-
 
         document
         .getElementById(

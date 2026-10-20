@@ -5,6 +5,8 @@ import {
     getDescription
 } from "./state.js";
 
+import { downloadPDF } from "./pdf.js";
+
 
 function createModelsTable(data) {
 
@@ -541,6 +543,17 @@ export function displayResults(
 
     }
 
+    const pdfButton = document.createElement("button");
+
+    pdfButton.type = "button";
+    pdfButton.className = "secondary outline download-pdf-btn";
+    pdfButton.textContent = "Скачать PDF";
+
+    pdfButton.addEventListener("click", () => {
+        downloadPDF(data, pdfButton);
+    });
+
+    block.appendChild(pdfButton);
 
     container.prepend(
         block

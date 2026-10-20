@@ -6,6 +6,9 @@
 {% block content %}
 
 <main class="container">
+    <p>
+        <a href="{% url 'account' %}">← Личный кабинет</a>
+    </p>
 
     <h2> История запросов</h2>
 
@@ -19,5 +22,5 @@
 
 
 {% block scripts %}
-<script src="{% static 'api/js/history.js' %}"></script>
+<script type="module" src="{% static 'api/js/history.js' %}?v=3"></script>
 {% endblock %}
