@@ -1,8 +1,12 @@
 import threading
 import time
 import traceback
+import uuid
+
+from datetime import timedelta
 
 from django.db import transaction
+from django.utils import timezone
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -19,6 +23,7 @@ from .services.image_pipeline import process_image
 from .services.utils import normalize_confidence
 from .services.vision_service import analyze_image_and_generate_questions
 from .services.final_decision_service import make_final_decision
+from .services.rate_limit import check_rate_limit, get_client_ip
 
 @api_view(['POST'])
 def generate_questions_view(request):
@@ -43,6 +48,34 @@ def generate_questions_view(request):
                 status=403
             )
         
+    if request.user.is_authenticated:
+        rate_identity = f"user:{request.user.pk}"
+    else:
+        rate_identity = f"ip:{get_client_ip(request)}"
+
+    retry_after = check_rate_limit(
+        scope="generate_questions",
+        identity=rate_identity,
+        limit=10,
+        period_seconds=60
+    )
+
+    if retry_after:
+        return Response(
+            {
+                "error": (
+                    "Слишком много запросов вопросов. "
+                    f"Повторите через {retry_after} сек."
+                ),
+                "code": "RATE_LIMIT_EXCEEDED",
+                "retry_after": retry_after,
+            },
+            status=429,
+            headers={
+                "Retry-After": str(retry_after),
+                "Cache-Control": "no-store",
+            }
+        )
     description = request.data.get(
         'description',
         ''
@@ -312,7 +345,37 @@ def analyze_product_view(request):
         time.time()
     )
 
+    if request.user.is_authenticated:
+        rate_identity = f"user:{request.user.pk}"
+    else:
+        rate_identity = f"ip:{get_client_ip(request)}"
+
+    retry_after = check_rate_limit(
+        scope="analyze_product",
+        identity=rate_identity,
+        limit=5,
+        period_seconds=60
+    )
+
+    if retry_after:
+        return Response(
+            {
+                "error": (
+                    "Слишком много запросов анализа. "
+                    f"Повторите через {retry_after} сек."
+                ),
+                "code": "RATE_LIMIT_EXCEEDED",
+                "retry_after": retry_after,
+            },
+            status=429,
+            headers={
+                "Retry-After": str(retry_after),
+                "Cache-Control": "no-store",
+            }
+        )
+
     claimed_request_id = None
+    run_id = uuid.uuid4()
 
     try:
 
@@ -389,18 +452,37 @@ def analyze_product_view(request):
                     status=409
                 )
 
+            now = timezone.now()
+
             if product_request.analysis_in_progress:
-                return Response(
-                    {"error": "Анализ этого запроса уже выполняется."},
-                    status=409
-                )
+                started_at = product_request.analysis_started_at
+
+                if started_at is None:
+                    return Response(
+                        {
+                            "error":
+                                "У запроса старая блокировка без времени начала. "
+                                "Необходимо восстановление администратором."
+                        },
+                        status=409
+                    )
+
+                if started_at > now - timedelta(minutes=15):
+                    return Response(
+                        {"error": "Анализ этого запроса уже выполняется."},
+                        status=409
+                    )
 
             product_request.analysis_in_progress = True
+            product_request.analysis_started_at = now
+            product_request.analysis_run_id = run_id
             product_request.description = data.get("description", "")
 
             product_request.save(
                 update_fields=[
                     "analysis_in_progress",
+                    "analysis_started_at",
+                    "analysis_run_id",
                     "description",
                 ]
             )
@@ -523,34 +605,6 @@ def analyze_product_view(request):
                     "reasoning": str(e)
                 }
 
-        for model_name, result in [
-            ("openai", openai_result),
-            ("deepseek", deepseek_result),
-            ("gigachat", gigachat_result),
-            ("yandex", yandex_result),
-        ]:
-
-            ModelResult.objects.create(
-                request=product_request,
-                model_name=model_name,
-                tnved_code=result.get(
-                    "tnved_code",
-                    ""
-                ),
-                title=result.get(
-                    "title",
-                    ""
-                ),
-                confidence=result.get(
-                    "confidence",
-                    0
-                ),
-                reasoning=result.get(
-                    "reasoning",
-                    ""
-                )
-            )
-
         final_result = make_final_decision(
             openai_result,
             deepseek_result,
@@ -577,24 +631,60 @@ def analyze_product_view(request):
             )
         )
 
-        FinalResult.objects.create(
-            request=product_request,
-            recommended_code=final_result.get(
-                "recommended_code"
-            ),
-            confidence=final_result.get(
-                "confidence",
-                0
-            ),
-            supported_by=final_result.get(
-                "supported_by",
-                []
-            ),
-            reasoning=final_result.get(
-                "reasoning",
-                ""
+        with transaction.atomic():
+            saved_request = (
+                ProductRequest.objects
+                .select_for_update()
+                .get(id=claimed_request_id)
             )
-        )
+
+            if (
+                not saved_request.analysis_in_progress
+                or saved_request.analysis_run_id != run_id
+            ):
+                return Response(
+                    {
+                        "error":
+                            "Эта попытка анализа больше не активна."
+                    },
+                    status=409
+                )
+
+            if FinalResult.objects.filter(
+                request=saved_request
+            ).exists():
+                return Response(
+                    {"error": "Результат этого запроса уже сохранён."},
+                    status=409
+                )
+
+            # Убираем частичные ответы от прежних неудачных попыток.
+            ModelResult.objects.filter(
+                request=saved_request
+            ).delete()
+
+            for model_name, result in [
+                ("openai", openai_result),
+                ("deepseek", deepseek_result),
+                ("gigachat", gigachat_result),
+                ("yandex", yandex_result),
+            ]:
+                ModelResult.objects.create(
+                    request=saved_request,
+                    model_name=model_name,
+                    tnved_code=result.get("tnved_code", ""),
+                    title=result.get("title", ""),
+                    confidence=result.get("confidence", 0),
+                    reasoning=result.get("reasoning", "")
+                )
+
+            FinalResult.objects.create(
+                request=saved_request,
+                recommended_code=final_result.get("recommended_code"),
+                confidence=final_result.get("confidence", 0),
+                supported_by=final_result.get("supported_by", []),
+                reasoning=final_result.get("reasoning", "")
+            )
 
         if not request.user.is_authenticated:
 
@@ -669,7 +759,10 @@ def analyze_product_view(request):
     finally:
         if claimed_request_id is not None:
             ProductRequest.objects.filter(
-                id=claimed_request_id
+                id=claimed_request_id,
+                analysis_run_id=run_id
             ).update(
-                analysis_in_progress=False
+                analysis_in_progress=False,
+                analysis_started_at=None,
+                analysis_run_id=None
             )

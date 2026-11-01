@@ -14,6 +14,15 @@ class ProductRequest(models.Model):
     image_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     analysis_in_progress = models.BooleanField(default=False)
+    analysis_started_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    analysis_run_id = models.UUIDField(
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"Request #{self.id}"
@@ -73,3 +82,20 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+class RateLimitBucket(models.Model):
+    key = models.CharField(
+        max_length=64,
+        unique=True
+    )
+
+    window_started_at = models.DateTimeField(
+        db_index=True
+    )
+
+    request_count = models.PositiveIntegerField(
+        default=0
+    )
+
+    def __str__(self):
+        return self.key

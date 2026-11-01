@@ -78,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'api.context_processors.turnstile_settings',
             ],
         },
     },
@@ -146,3 +147,14 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 # nginx передаёт схему исходного соединения.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+TRUST_NGINX_CLIENT_IP = (
+    os.getenv("TRUST_NGINX_CLIENT_IP", "False") == "True"
+)
+
+TURNSTILE_ENABLED = (
+    os.getenv("TURNSTILE_ENABLED", "False") == "True"
+)
+
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
