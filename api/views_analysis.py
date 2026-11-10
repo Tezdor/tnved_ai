@@ -203,51 +203,40 @@ def generate_questions_view(request):
                         file_error
                     )
 
-        if (
-            not images_bytes
-            and image_url
-        ):
+        image_warning = None
 
-            processed_image = process_image(
-                image_url=image_url
-            )
+        if not images_bytes and image_url:
+            processed_image = process_image(image_url=image_url)
 
-            if not processed_image:
+            if processed_image:
+                image_bytes = processed_image.read()
+            else:
+                image_bytes = b""
 
+            if image_bytes:
+                images_bytes.append(image_bytes)
+                processed_image.seek(0)
+                product_request.image.save(
+                    processed_image.name,
+                    processed_image,
+                    save=True
+                )
+            elif description:
+                image_warning = (
+                    "Не удалось загрузить фото по ссылке. "
+                    "Вопросы сформированы только по описанию."
+                )
+            else:
                 product_request.delete()
-
                 return Response(
                     {
-                        "error":
-                            "Не удалось загрузить изображение по ссылке"
+                        "error": (
+                            "Не удалось загрузить фото по ссылке. "
+                            "Загрузите фото файлом или добавьте описание товара."
+                        )
                     },
                     status=400
                 )
-
-            processed_image.seek(0)
-
-            image_bytes = processed_image.read()
-
-            processed_image.seek(0)
-
-            if image_bytes:
-
-                images_bytes.append(
-                    image_bytes
-                )
-
-            processed_image.seek(0)
-
-            product_request.image.save(
-                processed_image.name,
-                processed_image,
-                save=True
-            )
-
-            print(
-                "IMAGE FROM URL READ:",
-                len(image_bytes) if image_bytes else 0
-            )
 
         print(
             "TOTAL IMAGES FOR VISION:",
@@ -279,6 +268,9 @@ def generate_questions_view(request):
                         description
                     )
             }
+
+        if image_warning:
+            result["image_warning"] = image_warning
 
         result["request_id"] = product_request.id
 

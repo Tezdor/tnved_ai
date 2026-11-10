@@ -319,7 +319,16 @@ function getResultTitle(
         description.trim()
     ) {
 
-        return description.trim();
+        const productName = description.match(
+            /^[ \t]*Название:[ \t]*([^\r\n]+)/im
+        )?.[1]?.trim();
+
+        const title = productName
+            || description.trim().split(/\r?\n/, 1)[0].trim();
+
+        return title.length > 80
+            ? `${title.slice(0, 79).trimEnd()}…`
+            : title;
     }
 
 

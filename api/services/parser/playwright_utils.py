@@ -14,7 +14,7 @@ def get_page(url):
     p = sync_playwright().start()
 
     browser = p.chromium.launch(
-        headless=False,      # потом можно сделать True
+        headless=True,      # потом можно сделать True
         slow_mo=500
     )
 

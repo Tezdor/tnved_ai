@@ -914,3 +914,158 @@ button.download-pdf-btn {
     font-size: 14px;
     line-height: 1.4;
 }
+
+@media (max-width: 767px) {
+    body {
+        padding: 12px;
+        font-size: 17px;
+        line-height: 1.5;
+    }
+
+    .container {
+        max-width: 100%;
+        padding-inline: 0;
+    }
+
+    .site-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+    }
+
+    .site-header .alta-logo-link {
+        grid-area: 1 / 1;
+        justify-self: start;
+    }
+
+    .site-header .theme-switcher-container {
+        grid-area: 1 / 2;
+    }
+
+    .site-header .auth-nav {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-left: 0;
+    }
+
+    .site-header .auth-btn {
+        min-height: 44px;
+        max-width: 100%;
+        font-size: 15px;
+        overflow-wrap: anywhere;
+    }
+
+    .form-container input,
+    .form-container textarea,
+    .form-container select {
+        font-size: 16px;
+    }
+
+    #generateBtn {
+        min-height: 48px;
+        font-size: 17px;
+    }
+
+    .carousel-image-container {
+        height: clamp(180px, 60vw, 320px);
+        padding: 8px;
+        border-radius: 16px;
+    }
+
+    .carousel-image-container .preview-image {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        object-fit: contain;
+    }
+
+    .request-block h2 {
+        font-size: 22px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 767px) {
+    .models-table-container {
+        padding: 0 12px 12px;
+    }
+
+    .models-table,
+    .models-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .models-table thead {
+        display: none;
+    }
+
+    .models-table .model-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 10px;
+        padding: 14px;
+        border: 1px solid var(--table-border);
+        border-radius: 12px;
+    }
+
+    .models-table .model-row td {
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+        background: transparent;
+    }
+
+    .models-table .model-row td:first-child {
+        grid-area: 1 / 2;
+        justify-self: end;
+        width: auto;
+    }
+
+    .models-table .model-row td:nth-child(2) {
+        grid-area: 1 / 1 / 2 / 3;
+        padding-right: 24px;
+        font-size: 17px;
+    }
+
+    .models-table .model-row td:nth-child(n+3)::before {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--muted-text);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .models-table .model-row td:nth-child(3)::before {
+        content: "Код ТН ВЭД";
+    }
+
+    .models-table .model-row td:nth-child(4)::before {
+        content: "Уверенность";
+    }
+
+    .models-table .model-row td:nth-child(5)::before {
+        content: "НДС";
+    }
+
+    .models-table .model-row td:nth-child(6)::before {
+        content: "Пошлина";
+    }
+
+    .models-table .model-row-open + .model-details-row {
+        /* JS открывает детали как строку таблицы; на телефоне нужен блок. */
+        display: block !important;
+    }
+
+    .models-table .model-details-row td {
+        display: block;
+        border: 0;
+        overflow-wrap: anywhere;
+    }
+}

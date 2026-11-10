@@ -1120,6 +1120,9 @@ export async function generateQuestions() {
         }
 
         setProductRequestId(requestId, data.request_id);
+        if (data.image_warning) {
+            alert(data.image_warning);
+        }
         const visionData =
             data && data.detected_product
                 ? data
