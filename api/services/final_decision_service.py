@@ -3,7 +3,7 @@ import os
 import re
 
 from openai import OpenAI
-from .openai_service import clean_json
+from .llm.json_utils import clean_json
 
 
 client = OpenAI(

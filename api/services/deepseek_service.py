@@ -2,7 +2,7 @@ import os
 import requests
 import json
 
-from .openai_service import clean_json
+from .llm.json_utils import clean_json
 
 
 def ask_deepseek(product_data):

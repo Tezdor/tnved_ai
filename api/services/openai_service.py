@@ -5,48 +5,13 @@ from pathlib import Path
 
 from openai import OpenAI
 from django.conf import settings
+from .llm.json_utils import clean_json
 
 
 client = OpenAI(
     api_key=os.getenv("PROXYAPI_API_KEY"),
     base_url="https://api.proxyapi.ru/v1"
 )
-
-
-def clean_json(content):
-
-    content = content.strip()
-
-    content = content.replace("```json", "")
-    content = content.replace("```", "")
-
-    start_obj = content.find("{")
-    start_arr = content.find("[")
-
-    starts = [
-        x
-        for x in [start_obj, start_arr]
-        if x != -1
-    ]
-
-    if not starts:
-
-        raise Exception(
-            f"JSON не найден:\n{content}"
-        )
-
-    start = min(starts)
-
-    json_text = content[start:]
-
-    decoder = json.JSONDecoder()
-
-    obj, idx = decoder.raw_decode(
-        json_text
-    )
-
-    return obj
-
 
 # ============================================================
 # Загрузка сохранённой картинки

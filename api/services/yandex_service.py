@@ -2,7 +2,7 @@ import os
 import json
 import requests
 
-from .openai_service import clean_json
+from .llm.json_utils import clean_json
 
 
 def ask_yandex_gpt(product_data):
