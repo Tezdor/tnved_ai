@@ -107,7 +107,7 @@ def release_analysis(request_id, run_id):
 
 
 def run_and_save_analysis(data, claimed_request_id, run_id):
-    (   
+    (
         openai_result,
         deepseek_result,
         gigachat_result,
