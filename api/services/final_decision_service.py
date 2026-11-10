@@ -2,15 +2,10 @@ import json
 import os
 import re
 
-from openai import OpenAI
 from .llm.json_utils import clean_json
+from .llm.client import client
 
-
-client = OpenAI(
-    api_key=os.getenv("PROXYAPI_API_KEY"),
-    base_url="https://api.proxyapi.ru/v1"
-)
-
+from django.conf import settings
 # ============================================================
 # НОРМАЛИЗАЦИЯ КОДА
 # ============================================================

@@ -3,15 +3,9 @@ import json
 import base64
 from pathlib import Path
 
-from openai import OpenAI
+from .llm.client import client
 from django.conf import settings
 from .llm.json_utils import clean_json
-
-
-client = OpenAI(
-    api_key=os.getenv("PROXYAPI_API_KEY"),
-    base_url="https://api.proxyapi.ru/v1"
-)
 
 # ============================================================
 # Загрузка сохранённой картинки

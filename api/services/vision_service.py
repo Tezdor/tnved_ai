@@ -3,14 +3,9 @@ import json
 import base64
 import imghdr
 
-from openai import OpenAI
+from .llm.client import client
 
-
-client = OpenAI(
-    api_key=os.getenv("PROXYAPI_API_KEY"),
-    base_url="https://api.proxyapi.ru/v1"
-)
-
+from django.conf import settings
 
 # ============================================================
 # MIME TYPE
