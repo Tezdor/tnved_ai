@@ -4,6 +4,8 @@ import json
 
 from .llm.json_utils import clean_json
 
+from pathlib import Path
+
 
 def ask_deepseek(product_data):
 
@@ -25,59 +27,14 @@ def ask_deepseek(product_data):
     print(vision_data)
     print(type(vision_data))
 
-    prompt = f"""
-Ты эксперт по классификации ТН ВЭД ЕАЭС.
-
-Твоя задача — определить максимально точный код ТН ВЭД.
-
-Описание пользователя:
-
-{description}
-
-Результат анализа изображения:
-
-Наименование товара:
-
-{vision_data.get('detected_product', '')}
-
-Материал:
-
-{vision_data.get('material', '')}
-
-Назначение:
-
-{vision_data.get('purpose', '')}
-
-Ответы пользователя:
-
-{json.dumps(answers, ensure_ascii=False, indent=2)}
-
-Определи наиболее вероятный код ТН ВЭД.
-
-После определения кода самостоятельно определи:
-
-1. ставку импортной таможенной пошлины для выбранного кода;
-2. ставку НДС при импорте товара в Россию;
-3. объясни, почему применяются именно такие ставки.
-
-Ставка пошлины должна относиться именно к выбранному коду ТН ВЭД.
-
-Если ставка зависит от дополнительных условий,
-учти известные характеристики товара и опиши это
-в customs_reasoning.
-
-Верни ТОЛЬКО JSON:
-
-{{
-    "tnved_code": "",
-    "title": "",
-    "confidence": 0,
-    "reasoning": "",
-    "vat": "",
-    "duty": "",
-    "customs_reasoning": ""
-}}
-"""
+    prompt_path = Path(__file__).with_name("prompts") / "deepseek.txt"
+    prompt = prompt_path.read_text(encoding="utf-8").format(
+        description=description,
+        detected_product=vision_data.get("detected_product", ""),
+        material=vision_data.get("material", ""),
+        purpose=vision_data.get("purpose", ""),
+        answers_json=json.dumps(answers, ensure_ascii=False, indent=2)
+    )
 
     response = requests.post(
         url="https://api.proxyapi.ru/v1/chat/completions",
