@@ -3,10 +3,10 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_POST
 
-from .forms import RegisterForm
+from ..forms import RegisterForm
 
-from .services.rate_limit import check_rate_limit, get_client_ip
-from .services.turnstile import verify_turnstile
+from ..services.rate_limit import check_rate_limit, get_client_ip
+from ..services.turnstile import verify_turnstile
 
 
 def register_view(request):

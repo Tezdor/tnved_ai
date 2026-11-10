@@ -13,17 +13,17 @@ from concurrent.futures import ThreadPoolExecutor
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import ProductRequest, ModelResult, FinalResult
+from ..models import ProductRequest, ModelResult, FinalResult
 
-from .services.openai_service import generate_questions, analyze_tnved
-from .services.deepseek_service import ask_deepseek
-from .services.gigachat_service import ask_gigachat
-from .services.yandex_service import ask_yandex_gpt
-from .services.image_pipeline import process_image
-from .services.utils import normalize_confidence
-from .services.vision_service import analyze_image_and_generate_questions
-from .services.final_decision_service import make_final_decision
-from .services.rate_limit import check_rate_limit, get_client_ip
+from ..services.openai_service import generate_questions, analyze_tnved
+from ..services.deepseek_service import ask_deepseek
+from ..services.gigachat_service import ask_gigachat
+from ..services.yandex_service import ask_yandex_gpt
+from ..services.image_pipeline import process_image
+from ..services.utils import normalize_confidence
+from ..services.vision_service import analyze_image_and_generate_questions
+from ..services.final_decision_service import make_final_decision
+from ..services.rate_limit import check_rate_limit, get_client_ip
 
 @api_view(['POST'])
 def generate_questions_view(request):

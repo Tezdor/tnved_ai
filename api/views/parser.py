@@ -5,7 +5,7 @@ import uuid
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .services.parser.product_parser import parse_product_page
+from ..services.parser.product_parser import parse_product_page
 
 @api_view(["POST"])
 def parse_product_view(request):

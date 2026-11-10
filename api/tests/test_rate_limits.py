@@ -10,7 +10,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from api.models import RateLimitBucket
 from api.services.rate_limit import check_rate_limit, get_client_ip
-from api.views_analysis import generate_questions_view, analyze_product_view
+from api.views.analysis import generate_questions_view, analyze_product_view
 
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
@@ -117,7 +117,7 @@ class RateLimitTests(TestCase):
         force_authenticate(request, user=self.user)
 
         with patch(
-            "api.views_analysis.generate_questions"
+            "api.views.analysis.generate_questions"
         ) as model_call:
             response = generate_questions_view(request)
 
@@ -146,7 +146,7 @@ class RateLimitTests(TestCase):
         force_authenticate(request, user=self.user)
 
         with patch(
-            "api.views_analysis.ThreadPoolExecutor"
+            "api.views.analysis.ThreadPoolExecutor"
         ) as executor:
             response = analyze_product_view(request)
 

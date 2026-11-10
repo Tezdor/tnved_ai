@@ -13,15 +13,11 @@ from .views import (
     process_image_view,
     parse_product_view,
     wb_image_proxy,
-)
-
-from .views_auth import (
     register_view,
     login_view,
     logout_view,
+    account_page,
 )
-
-from .views_account import account_page
 
 urlpatterns = [
 

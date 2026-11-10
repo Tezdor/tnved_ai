@@ -6,8 +6,8 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import ProductRequest
-from .services.image_pipeline import process_image
+from ..models import ProductRequest
+from ..services.image_pipeline import process_image
 
 @api_view(["GET"])
 def image_preview_view(request):

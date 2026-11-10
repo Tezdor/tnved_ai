@@ -2,7 +2,7 @@ from django.http import FileResponse
 
 from rest_framework.decorators import api_view
 
-from .services.pdf_service import generate_pdf
+from ..services.pdf_service import generate_pdf
 
 
 @api_view(['POST'])

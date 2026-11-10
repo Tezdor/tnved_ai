@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from .models import ProductRequest
+from ..models import ProductRequest
 
 
 @login_required(login_url='login')

@@ -88,8 +88,8 @@ class TurnstileServiceTests(SimpleTestCase):
         post.assert_not_called()
 @override_settings(TRUST_NGINX_CLIENT_IP=False)
 class TurnstileFormTests(TestCase):
-    @patch("api.views_auth.check_rate_limit", return_value=0)
-    @patch("api.views_auth.verify_turnstile", return_value=False)
+    @patch("api.views.auth.check_rate_limit", return_value=0)
+    @patch("api.views.auth.verify_turnstile", return_value=False)
     def test_registration_rejected(self, verify, rate_limit):
         response = self.client.post(
             "/api/register/",
@@ -108,8 +108,8 @@ class TurnstileFormTests(TestCase):
         )
         verify.assert_called_once_with("rejected-token")
 
-    @patch("api.views_auth.check_rate_limit", return_value=0)
-    @patch("api.views_auth.verify_turnstile", return_value=False)
+    @patch("api.views.auth.check_rate_limit", return_value=0)
+    @patch("api.views.auth.verify_turnstile", return_value=False)
     def test_login_rejected(self, verify, rate_limit):
         User.objects.create_user(
             username="existing-user",

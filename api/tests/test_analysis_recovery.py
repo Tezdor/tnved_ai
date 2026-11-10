@@ -11,7 +11,7 @@ from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from api.models import ProductRequest, ModelResult, FinalResult
-from api.views_analysis import analyze_product_view
+from api.views.analysis import analyze_product_view
 
 
 class AnalysisRecoveryTests(TestCase):
@@ -43,7 +43,7 @@ class AnalysisRecoveryTests(TestCase):
         ):
             mocked = self.patches.enter_context(
                 patch(
-                    f"api.views_analysis.{name}",
+                    f"api.views.analysis.{name}",
                     side_effect=lambda *args, **kwargs: model_result.copy()
                 )
             )
@@ -58,7 +58,7 @@ class AnalysisRecoveryTests(TestCase):
 
         self.final_mock = self.patches.enter_context(
             patch(
-                "api.views_analysis.make_final_decision",
+                "api.views.analysis.make_final_decision",
                 side_effect=lambda *args, **kwargs: self.final_data.copy()
             )
         )
@@ -161,7 +161,7 @@ class AnalysisRecoveryTests(TestCase):
 
     def test_failed_save_rolls_back_model_results(self):
         with patch(
-            "api.views_analysis.FinalResult.objects.create",
+            "api.views.analysis.FinalResult.objects.create",
             side_effect=RuntimeError("Тестовая ошибка сохранения")
         ):
             response = self.analyze()
