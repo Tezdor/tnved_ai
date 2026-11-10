@@ -43,7 +43,7 @@ class AnalysisRecoveryTests(TestCase):
         ):
             mocked = self.patches.enter_context(
                 patch(
-                    f"api.views.analysis.{name}",
+                    f"api.services.analysis.pipeline.{name}",
                     side_effect=lambda *args, **kwargs: model_result.copy()
                 )
             )
@@ -58,7 +58,7 @@ class AnalysisRecoveryTests(TestCase):
 
         self.final_mock = self.patches.enter_context(
             patch(
-                "api.views.analysis.make_final_decision",
+                "api.services.analysis.pipeline.make_final_decision",
                 side_effect=lambda *args, **kwargs: self.final_data.copy()
             )
         )
@@ -161,7 +161,7 @@ class AnalysisRecoveryTests(TestCase):
 
     def test_failed_save_rolls_back_model_results(self):
         with patch(
-            "api.views.analysis.FinalResult.objects.create",
+            "api.services.analysis.pipeline.FinalResult.objects.create",
             side_effect=RuntimeError("Тестовая ошибка сохранения")
         ):
             response = self.analyze()

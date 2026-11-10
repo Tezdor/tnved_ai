@@ -3,27 +3,22 @@ import time
 import traceback
 import uuid
 
-from datetime import timedelta
-
-from django.db import transaction
-from django.utils import timezone
-
-from concurrent.futures import ThreadPoolExecutor
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from ..models import ProductRequest, ModelResult, FinalResult
+from ..models import ProductRequest
 
-from ..services.openai_service import generate_questions, analyze_tnved
-from ..services.deepseek_service import ask_deepseek
-from ..services.gigachat_service import ask_gigachat
-from ..services.yandex_service import ask_yandex_gpt
+from ..services.openai_service import generate_questions
 from ..services.image_pipeline import process_image
-from ..services.utils import normalize_confidence
 from ..services.vision_service import analyze_image_and_generate_questions
-from ..services.final_decision_service import make_final_decision
 from ..services.rate_limit import check_rate_limit, get_client_ip
+from ..services.analysis.pipeline import (
+    AnalysisConflict,
+    AnalysisNotFound,
+    claim_analysis,
+    release_analysis,
+    run_and_save_analysis,
+)
 
 @api_view(['POST'])
 def generate_questions_view(request):
@@ -419,264 +414,21 @@ def analyze_product_view(request):
                 id__in=guest_request_ids
             )
 
-        with transaction.atomic():
-            product_request = (
-                available_requests
-                .select_for_update()
-                .filter(id=request_id)
-                .first()
+        try:
+            claimed_request_id = claim_analysis(
+                available_requests, request_id, run_id, data
             )
-
-            if product_request is None:
-                return Response(
-                    {"error": "Запрос не найден или недоступен."},
-                    status=404
-                )
-
-            if FinalResult.objects.filter(
-                request=product_request
-            ).exists():
-                return Response(
-                    {
-                        "error":
-                            "Этот запрос уже проанализирован. Создайте новый запрос."
-                    },
-                    status=409
-                )
-
-            now = timezone.now()
-
-            if product_request.analysis_in_progress:
-                started_at = product_request.analysis_started_at
-
-                if started_at is None:
-                    return Response(
-                        {
-                            "error":
-                                "У запроса старая блокировка без времени начала. "
-                                "Необходимо восстановление администратором."
-                        },
-                        status=409
-                    )
-
-                if started_at > now - timedelta(minutes=15):
-                    return Response(
-                        {"error": "Анализ этого запроса уже выполняется."},
-                        status=409
-                    )
-
-            product_request.analysis_in_progress = True
-            product_request.analysis_started_at = now
-            product_request.analysis_run_id = run_id
-            product_request.description = data.get("description", "")
-
-            product_request.save(
-                update_fields=[
-                    "analysis_in_progress",
-                    "analysis_started_at",
-                    "analysis_run_id",
-                    "description",
-                ]
-            )
-
-        claimed_request_id = product_request.id
-
-        with ThreadPoolExecutor(
-            max_workers=4
-        ) as executor:
-
-            future_openai = executor.submit(
-                analyze_tnved,
-                data
-            )
-
-            future_deepseek = executor.submit(
-                ask_deepseek,
-                data
-            )
-
-            future_gigachat = executor.submit(
-                ask_gigachat,
-                data
-            )
-
-            future_yandex = executor.submit(
-                ask_yandex_gpt,
-                data
-            )
-
-            try:
-
-                openai_result = (
-                    future_openai.result()
-                )
-
-                openai_result["confidence"] = (
-                    normalize_confidence(
-                        openai_result.get(
-                            "confidence"
-                        )
-                    )
-                )
-
-            except Exception as e:
-
-                openai_result = {
-                    "tnved_code": "-",
-                    "title": "Ошибка",
-                    "confidence": 0,
-                    "reasoning": str(e)
-                }
-
-            try:
-
-                deepseek_result = (
-                    future_deepseek.result()
-                )
-
-                deepseek_result["confidence"] = (
-                    normalize_confidence(
-                        deepseek_result.get(
-                            "confidence"
-                        )
-                    )
-                )
-
-            except Exception as e:
-
-                deepseek_result = {
-                    "tnved_code": "-",
-                    "title": "Ошибка",
-                    "confidence": 0,
-                    "reasoning": str(e)
-                }
-
-            try:
-
-                gigachat_result = (
-                    future_gigachat.result()
-                )
-
-                gigachat_result["confidence"] = (
-                    normalize_confidence(
-                        gigachat_result.get(
-                            "confidence"
-                        )
-                    )
-                )
-
-            except Exception as e:
-
-                gigachat_result = {
-                    "tnved_code": "-",
-                    "title": "Ошибка",
-                    "confidence": 0,
-                    "reasoning": str(e)
-                }
-
-            try:
-
-                yandex_result = (
-                    future_yandex.result()
-                )
-
-                yandex_result["confidence"] = (
-                    normalize_confidence(
-                        yandex_result.get(
-                            "confidence"
-                        )
-                    )
-                )
-
-            except Exception as e:
-
-                yandex_result = {
-                    "tnved_code": "-",
-                    "title": "Ошибка",
-                    "confidence": 0,
-                    "reasoning": str(e)
-                }
-
-        final_result = make_final_decision(
-            openai_result,
-            deepseek_result,
-            gigachat_result,
-            yandex_result,
-            description=data.get(
-                "description",
-                ""
-            ),
-            answers=data.get(
-                "answers",
-                []
-            ),
-            vision_data=data.get(
-                "vision_data"
-            ) or {}
-        )
-
-        final_result["confidence"] = (
-            normalize_confidence(
-                final_result.get(
-                    "confidence"
-                )
-            )
-        )
-
-        with transaction.atomic():
-            saved_request = (
-                ProductRequest.objects
-                .select_for_update()
-                .get(id=claimed_request_id)
-            )
-
-            if (
-                not saved_request.analysis_in_progress
-                or saved_request.analysis_run_id != run_id
-            ):
-                return Response(
-                    {
-                        "error":
-                            "Эта попытка анализа больше не активна."
-                    },
-                    status=409
-                )
-
-            if FinalResult.objects.filter(
-                request=saved_request
-            ).exists():
-                return Response(
-                    {"error": "Результат этого запроса уже сохранён."},
-                    status=409
-                )
-
-            # Убираем частичные ответы от прежних неудачных попыток.
-            ModelResult.objects.filter(
-                request=saved_request
-            ).delete()
-
-            for model_name, result in [
-                ("openai", openai_result),
-                ("deepseek", deepseek_result),
-                ("gigachat", gigachat_result),
-                ("yandex", yandex_result),
-            ]:
-                ModelResult.objects.create(
-                    request=saved_request,
-                    model_name=model_name,
-                    tnved_code=result.get("tnved_code", ""),
-                    title=result.get("title", ""),
-                    confidence=result.get("confidence", 0),
-                    reasoning=result.get("reasoning", "")
-                )
-
-            FinalResult.objects.create(
-                request=saved_request,
-                recommended_code=final_result.get("recommended_code"),
-                confidence=final_result.get("confidence", 0),
-                supported_by=final_result.get("supported_by", []),
-                reasoning=final_result.get("reasoning", "")
-            )
+            (
+                openai_result,
+                deepseek_result,
+                gigachat_result,
+                yandex_result,
+                final_result,
+            ) = run_and_save_analysis(data, claimed_request_id, run_id)
+        except AnalysisNotFound as error:
+            return Response({"error": str(error)}, status=404)
+        except AnalysisConflict as error:
+            return Response({"error": str(error)}, status=409)
 
         if not request.user.is_authenticated:
 
@@ -750,11 +502,4 @@ def analyze_product_view(request):
 
     finally:
         if claimed_request_id is not None:
-            ProductRequest.objects.filter(
-                id=claimed_request_id,
-                analysis_run_id=run_id
-            ).update(
-                analysis_in_progress=False,
-                analysis_started_at=None,
-                analysis_run_id=None
-            )
+            release_analysis(claimed_request_id, run_id)

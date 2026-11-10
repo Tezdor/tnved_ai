@@ -146,7 +146,7 @@ class RateLimitTests(TestCase):
         force_authenticate(request, user=self.user)
 
         with patch(
-            "api.views.analysis.ThreadPoolExecutor"
+            "api.services.analysis.pipeline.ThreadPoolExecutor"
         ) as executor:
             response = analyze_product_view(request)
 
