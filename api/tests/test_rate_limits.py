@@ -9,7 +9,7 @@ from django.db import close_old_connections, connections
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from api.models import RateLimitBucket
-from api.services.rate_limit import check_rate_limit, get_client_ip
+from api.core.rate_limit import check_rate_limit, get_client_ip
 from api.views.analysis import generate_questions_view, analyze_product_view
 
 from concurrent.futures import ThreadPoolExecutor

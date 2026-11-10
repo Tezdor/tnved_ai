@@ -11,7 +11,11 @@ from ..models import ProductRequest
 from ..services.openai_service import generate_questions
 from ..services.image_pipeline import process_image
 from ..services.vision_service import analyze_image_and_generate_questions
-from ..services.rate_limit import check_rate_limit, get_client_ip
+from ..core.access import (
+    analysis_retry_after,
+    available_product_requests,
+    guest_limit_reached,
+)
 from ..services.analysis.pipeline import (
     AnalysisConflict,
     AnalysisNotFound,
@@ -23,36 +27,20 @@ from ..services.analysis.pipeline import (
 @api_view(['POST'])
 def generate_questions_view(request):
 
-    GUEST_FREE_LIMIT = 2
-
-    if not request.user.is_authenticated:
-        guest_attempts = request.session.get(
-            "guest_analysis_count",
-            0
+    if guest_limit_reached(request):
+        return Response(
+            {
+                "error": "Лимит бесплатных анализов исчерпан.",
+                "code": "GUEST_LIMIT_REACHED",
+                "requires_auth": True,
+                "login_url": "/api/login/",
+                "register_url": "/api/register/",
+            },
+            status=403,
         )
 
-        if guest_attempts >= GUEST_FREE_LIMIT:
-            return Response(
-                {
-                    "error": "Лимит бесплатных анализов исчерпан.",
-                    "code": "GUEST_LIMIT_REACHED",
-                    "requires_auth": True,
-                    "login_url": "/api/login/",
-                    "register_url": "/api/register/"
-                },
-                status=403
-            )
-        
-    if request.user.is_authenticated:
-        rate_identity = f"user:{request.user.pk}"
-    else:
-        rate_identity = f"ip:{get_client_ip(request)}"
-
-    retry_after = check_rate_limit(
-        scope="generate_questions",
-        identity=rate_identity,
-        limit=10,
-        period_seconds=60
+    retry_after = analysis_retry_after(
+        request, scope="generate_questions", limit=10
     )
 
     if retry_after:
@@ -303,26 +291,17 @@ def generate_questions_view(request):
 @api_view(['POST'])
 def analyze_product_view(request):
 
-    GUEST_FREE_LIMIT = 2
-
-    if not request.user.is_authenticated:
-
-        guest_attempts = request.session.get(
-            "guest_analysis_count",
-            0
+    if guest_limit_reached(request):
+        return Response(
+            {
+                "error": "Лимит бесплатных анализов исчерпан.",
+                "code": "GUEST_LIMIT_REACHED",
+                "requires_auth": True,
+                "login_url": "/api/login/",
+                "register_url": "/api/register/",
+            },
+            status=403,
         )
-
-        if guest_attempts >= GUEST_FREE_LIMIT:
-            return Response(
-                {
-                    "error": "Лимит бесплатных анализов исчерпан.",
-                    "code": "GUEST_LIMIT_REACHED",
-                    "requires_auth": True,
-                    "login_url": "/api/login/",
-                    "register_url": "/api/register/"
-                },
-                status=403
-            )
 
     print(
         "========== ANALYZE START ==========",
@@ -332,16 +311,8 @@ def analyze_product_view(request):
         time.time()
     )
 
-    if request.user.is_authenticated:
-        rate_identity = f"user:{request.user.pk}"
-    else:
-        rate_identity = f"ip:{get_client_ip(request)}"
-
-    retry_after = check_rate_limit(
-        scope="analyze_product",
-        identity=rate_identity,
-        limit=5,
-        period_seconds=60
+    retry_after = analysis_retry_after(
+        request, scope="analyze_product", limit=5
     )
 
     if retry_after:
@@ -402,17 +373,7 @@ def analyze_product_view(request):
                 status=400
             )
 
-        if request.user.is_authenticated:
-            available_requests = ProductRequest.objects.filter(
-                user=request.user
-            )
-        else:
-            guest_request_ids = request.session.get("guest_request_ids", [])
-
-            available_requests = ProductRequest.objects.filter(
-                user__isnull=True,
-                id__in=guest_request_ids
-            )
+        available_requests = available_product_requests(request)
 
         try:
             claimed_request_id = claim_analysis(

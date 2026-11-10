@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.core.exceptions import ImproperlyConfigured
 
-from api.services.turnstile import verify_turnstile
+from api.core.turnstile import verify_turnstile
 
 @override_settings(
     DEBUG=True,
@@ -15,7 +15,7 @@ from api.services.turnstile import verify_turnstile
     TURNSTILE_SECRET_KEY="test-secret-key"
 )
 class TurnstileServiceTests(SimpleTestCase):
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_success(self, post):
         post.return_value = Mock(
             status_code=200,
@@ -24,7 +24,7 @@ class TurnstileServiceTests(SimpleTestCase):
 
         self.assertTrue(verify_turnstile("test-token"))
 
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_invalid_responses(self, post):
         for result in (
             {"success": False},
@@ -40,19 +40,19 @@ class TurnstileServiceTests(SimpleTestCase):
 
                 self.assertFalse(verify_turnstile("test-token"))
 
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_network_error(self, post):
         post.side_effect = requests.Timeout()
 
         self.assertFalse(verify_turnstile("test-token"))
 
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_http_error(self, post):
         post.return_value = Mock(status_code=503)
 
         self.assertFalse(verify_turnstile("test-token"))
 
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_invalid_json(self, post):
         post.return_value = Mock(
             status_code=200,
@@ -61,7 +61,7 @@ class TurnstileServiceTests(SimpleTestCase):
 
         self.assertFalse(verify_turnstile("test-token"))
 
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_missing_or_oversized_token(self, post):
         for token in ("", None, "x" * 2049):
             with self.subTest(token_length=len(token or "")):
@@ -70,7 +70,7 @@ class TurnstileServiceTests(SimpleTestCase):
         post.assert_not_called()
 
     @override_settings(TURNSTILE_ENABLED=False)
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_disabled(self, post):
         self.assertTrue(verify_turnstile(""))
         post.assert_not_called()
@@ -80,7 +80,7 @@ class TurnstileServiceTests(SimpleTestCase):
         TURNSTILE_SITE_KEY="1x00000000000000000000AA",
         TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
     )
-    @patch("api.services.turnstile.requests.post")
+    @patch("api.core.turnstile.requests.post")
     def test_production_rejects_test_keys(self, post):
         with self.assertRaises(ImproperlyConfigured):
             verify_turnstile("test-token")
