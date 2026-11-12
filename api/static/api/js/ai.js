@@ -1,7 +1,16 @@
-import {setLatestResults, getProductRequestId} from "./state.js";
+import {
+    createRequestState,
+    getProductRequestId,
+    setConfirmedAnswers,
+    setDescription,
+    setLatestResults,
+    setProductRequestId,
+    setVisionData,
+} from "./state.js";
 import {displayResults} from "./results.js";
 import { showGuestLimitNotice } from "./guest-limit.js";
 
+const pendingAnalysisKey = "tnved.pending-analysis";
 
 function getCsrfToken() {
     const cookie = document.cookie
@@ -99,7 +108,13 @@ try {
     if (modal && modal.open) {
         modal.close();
     }
-
+        sessionStorage.setItem(pendingAnalysisKey, JSON.stringify({
+        productRequestId: getProductRequestId(requestId),
+        answers,
+        description,
+        visionData,
+        autoResume: true,
+    }));
     showGuestLimitNotice();
 
     return;
@@ -119,6 +134,13 @@ try {
 
     // Выводим результаты
     displayResults(data, requestId);
+    const pending = JSON.parse(
+        sessionStorage.getItem(pendingAnalysisKey) || "null"
+    );
+
+    if (pending?.productRequestId === getProductRequestId(requestId)) {
+        sessionStorage.removeItem(pendingAnalysisKey);
+    }
 
 
     const modal =
@@ -149,7 +171,38 @@ catch (error) {
         "Ошибка при анализе: " +
         error
     );
-}
+}}
 
+export function resumePendingAnalysis() {
+    if (
+        document.body.dataset.authenticated !== "true"
+        || !document.getElementById("generateBtn")
+    ) {
+        return;
+    }
 
+    const pending = JSON.parse(
+        sessionStorage.getItem(pendingAnalysisKey) || "null"
+    );
+
+    if (!pending?.autoResume || !Number.isInteger(pending.productRequestId)) {
+        return;
+    }
+
+    // Отмечаем запуск заранее: обновление страницы не запустит модели снова.
+    pending.autoResume = false;
+    sessionStorage.setItem(pendingAnalysisKey, JSON.stringify(pending));
+
+    const requestId = createRequestState();
+    setProductRequestId(requestId, pending.productRequestId);
+    setDescription(requestId, pending.description);
+    setVisionData(requestId, pending.visionData);
+    setConfirmedAnswers(requestId, pending.answers);
+
+    return sendToAI(
+        pending.answers,
+        pending.description,
+        pending.visionData,
+        requestId,
+    );
 }

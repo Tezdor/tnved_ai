@@ -1,7 +1,8 @@
 import {initImageUpload, initPasteImage} from "./images.js";
 import {initMarketplace} from "./marketplaces.js";
-import {generateQuestions} from "./questions.js";
+import {generateQuestions, resumePendingQuestions} from "./questions.js";
 import {submitAnswers} from "./answers.js";
+import { resumePendingAnalysis } from "./ai.js";
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -15,8 +16,11 @@ document.addEventListener(
 
 
         initMarketplace();
-
-
+        Promise.resolve(resumePendingAnalysis()).then(() => {
+            if (!document.getElementById("resultsHistory")?.childElementCount) {
+                return resumePendingQuestions();
+            }
+        });
 
         document
         .getElementById(
@@ -26,8 +30,6 @@ document.addEventListener(
             "click",
             generateQuestions
         );
-
-
 
         document
         .getElementById(
@@ -57,8 +59,6 @@ document.addEventListener(
 
             }
         );
-
-
 
         document
         .getElementById(

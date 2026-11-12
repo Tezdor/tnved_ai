@@ -22,7 +22,7 @@
     >
 </head>
 
-<body>
+<body data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
 
     <header class="site-header">
 

@@ -284,14 +284,15 @@ def generate_questions_view(request):
             status=500
         )
 
-
-
-
-
 @api_view(['POST'])
 def analyze_product_view(request):
 
     if guest_limit_reached(request):
+        request_id = request.data.get("request_id")
+        guest_request_ids = request.session.get("guest_request_ids", [])
+
+        if type(request_id) is int and request_id in guest_request_ids:
+            request.session["pending_guest_request_id"] = request_id
         return Response(
             {
                 "error": "Лимит бесплатных анализов исчерпан.",

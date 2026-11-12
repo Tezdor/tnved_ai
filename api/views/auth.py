@@ -4,10 +4,24 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_POST
 
 from ..forms import RegisterForm
+from ..models import ProductRequest
 
 from ..core.rate_limit import check_rate_limit, get_client_ip
 from ..core.turnstile import verify_turnstile
 
+def login_with_pending_analysis(request, user):
+    pending_id = request.session.pop("pending_guest_request_id", None)
+    guest_request_ids = request.session.get("guest_request_ids", [])
+
+    login(request, user)
+
+    if type(pending_id) is int and pending_id in guest_request_ids:
+        ProductRequest.objects.filter(
+            pk=pending_id,
+            user__isnull=True,
+            analysis_in_progress=False,
+            final__isnull=True,
+        ).update(user=user)
 
 def register_view(request):
     if request.method == 'POST':
@@ -55,7 +69,7 @@ def register_view(request):
 
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login_with_pending_analysis(request, user)
             return redirect('index')
     else:
         form = RegisterForm()
@@ -116,7 +130,7 @@ def login_view(request):
 
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
+            login_with_pending_analysis(request, user)
             return redirect('index')
     else:
         form = AuthenticationForm(request)

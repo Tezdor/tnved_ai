@@ -8,6 +8,12 @@ import {
     setProductRequestId
 } from "./state.js";
 
+import {
+    clearPendingQuestions,
+    savePendingQuestions,
+    takePendingQuestionsForResume,
+} from "./pending-questions.js";
+
 import { sendToAI } from "./ai.js";
 import { showGuestLimitNotice } from "./guest-limit.js";
 
@@ -842,7 +848,10 @@ async function resolveImageSource(
 }
 
 
-export async function generateQuestions() {
+export async function generateQuestions(draft = null) {
+    const savedEntries = Array.isArray(draft?.entries)
+        ? draft.entries
+        : null;
 
     const existingImageUrl =
         window.imageFromUrl || null;
@@ -889,50 +898,38 @@ export async function generateQuestions() {
         requestId;
 
 
-    let description =
-        getDescription();
-
-
-    console.log(
-        "DESCRIPTION:",
-        description
-    );
-
-
+    let description = getDescription();
     let imageSource = null;
 
+    if (savedEntries) {
+        const saved = new FormData();
 
-    try {
+        for (const [name, value] of savedEntries) {
+            saved.append(name, value);
+        }
 
-        imageSource =
-            await resolveImageSource(
-                requestId
+        description = String(saved.get("description") || "");
+        const files = saved.getAll("image");
+        const url = saved.get("image_url");
+
+        if (files.length) {
+            imageSource = {type: "files", files};
+        } else if (url) {
+            imageSource = {type: "url", url};
+        }
+    } else {
+        try {
+            imageSource = await resolveImageSource(requestId);
+        } catch (error) {
+            console.error("IMAGE SOURCE ERROR:", error);
+            alert(
+                "Не удалось получить изображение товара:\n" + error.message
             );
+            return;
+        }
 
+        description = getDescription();
     }
-
-    catch (error) {
-
-        console.error(
-            "IMAGE SOURCE ERROR:",
-            error
-        );
-
-
-        alert(
-            "Не удалось получить изображение товара:\n" +
-            error.message
-        );
-
-
-        return;
-
-    }
-
-
-    description =
-        getDescription();
-
 
     setDescription(
         requestId,
@@ -1079,14 +1076,16 @@ export async function generateQuestions() {
             response.status === 403 &&
             data.code === "GUEST_LIMIT_REACHED"
         ) {
-            showGuestLimitNotice();
-            return;
-        }
+            try {
+                await savePendingQuestions(formData);
+            } catch (error) {
+                console.error("Не удалось сохранить черновик:", error);
+                alert(
+                    "Браузер не сохранил запрос. После входа может "
+                    + "потребоваться снова выбрать товар."
+                );
+            }
 
-        if (
-            response.status === 403 &&
-            data.code === "GUEST_LIMIT_REACHED"
-        ) {
             showGuestLimitNotice();
             return;
         }
@@ -1120,6 +1119,11 @@ export async function generateQuestions() {
         }
 
         setProductRequestId(requestId, data.request_id);
+        if (savedEntries) {
+            clearPendingQuestions(draft.id).catch(error => {
+                console.error("Не удалось удалить черновик:", error);
+            });
+        }
         if (data.image_warning) {
             alert(data.image_warning);
         }
@@ -1238,13 +1242,29 @@ export async function generateQuestions() {
 
             loader.style.display =
                 "none";
-
         }
-
     }
-
 }
 
+export async function resumePendingQuestions() {
+    if (
+        document.body.dataset.authenticated !== "true"
+        || !document.getElementById("generateBtn")
+    ) {
+        return;
+    }
+
+    try {
+        const draft = await takePendingQuestionsForResume();
+
+        if (draft) {
+            await generateQuestions(draft);
+        }
+    } catch (error) {
+        console.error("Не удалось восстановить черновик:", error);
+        alert("Не удалось восстановить запрос. Попробуйте выбрать товар снова.");
+    }
+}
 
 export function renderQuestions(
     questions,
